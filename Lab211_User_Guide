@@ -1,0 +1,116 @@
+#------教二楼211实验室GPU平台用户手册------2019年2月#
+
+1.向管理员申请端口号（50000后递增）
+
+2.通过ssh远程访问自己的docker container(退出用exit)
+  示例：ssh -p 50000 root@ip
+  远程服务器ip地址由管理员提供，若登录显示ip地址错误请咨询管理员
+  root用户登录初始密码：123456（推荐root用户登录拥有最大权限 不推荐修改密码）
+
+3.进入docker container内部后（按顺序操作）
+  (1)测试
+  命令：ls （可显示容器根目录三个文件夹Source Workspace Log）
+  约定： - Workspace中存放代码和自己的数据
+         - Log中存放对应实验log，比如每个实验的训练信息和保存的model
+         - Source中存放公用的datasets和model_zoo（请不要存放个人数据）
+
+  (2)docker container更换下载源
+  命令：echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse" > /etc/apt/sources.list
+        echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse" > /etc/apt/sources.list
+        echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse" > /etc/apt/sources.list
+        echo "deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse" > /etc/apt/sources.list
+        sudo apt-get update (更新源)
+        sudo apt-get upgrade
+
+  (3)安装Anaconda(可选)
+  命令：wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/Anaconda3-5.1.0-Linux-x86_64.sh（下载）
+	wget https://repo.anaconda.com/archive/Anaconda3-2018.12-Linux-x86_64.sh
+	bash Anaconda3-5.1.0-Linux-x86_64.sh (运行安装程序，注意安装时询问是否添加环境变量请选择yes，vscode安装选择no)
+	source ~/.bashrc (更新环境变量)
+	conda list (检测是否安装成功)
+        rm Anaconda3-5.1.0-Linux-x86_64.sh (删除安装包避免占用空间)
+
+  (4)Anaconda更换下载源
+  命令：conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+        conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+	conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/
+	conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+	conda config --set show_channel_urls yes
+
+  (5)配置自己的远程访问jupyter notebook
+  命令：python（进入python交互,依次输入以下语句）
+        >>from notebook.auth import passwd
+	>>passwd() (生成的sha1密钥保存下来)
+	>>quit() (退出python交互)
+  命令：jupyter notebook --generate-config (生成notebook配置文件)
+        vim ~/.jupyter/jupyter_notebook_config.py (使用vim对配置文件进行修改)
+        加入如下语句（sha1替换为之前保存的内容）：
+	c.NotebookApp.ip='*' (有socket.gaierror: [Errno -2] Name or service not known/address报错可改为0.0.0.0,原因可能是覆盖文件有问题)
+	c.NotebookApp.password = u'sha1:eb423978f82e:c68bdfa3e97cc576c38388eec38f67da931e4b37'
+	c.NotebookApp.open_browser = False
+	c.NotebookApp.port =8888 
+  命令：jupyter notebook --allow-root (启动notebook，窗口不能关闭)
+        浏览器输入：ip:port即可访问自己的jupyter notebook
+	ip为之前ssh登录的远程服务器ip
+  	port为ssh登录的端口号加10000（如登录端口号为50000,则notebook访问port为60000）
+
+
+提示1: 按照上述步骤配置好自己的docker container后，具体使用可按照以下推荐步骤来操作
+      (1)ssh远程访问服务器，使用Anaconda配置自己运行程序所需要的环境
+      (2)新建一个端口再次访问服务器并开启jupyter notebook (可与上一步同时运行)(也可以在notebook中新建终端)
+      (3)远程访问jupyter notebook开始运行程序
+
+提示2:vim无法显示中文问题
+      命令：vim ~/.vimrc
+      添加：set fileencodings=utf-8,gb2312,gbk,gb18030
+            set termencoding=utf-8
+            set fileformats=unix
+            set encoding=prc
+
+提示3:利用jupyter notebook管理多个anaconda环境
+      命令:conda install nb_conda（主环境中安装）
+	   source activate [name] (激活虚拟环境)
+           conda install ipykernel (虚拟环境中安装)
+
+#------------------2019年6月1号更新------------------------#
+由于近期清华镜像源被禁，Anaconda安装环境可能会不方便，因此推荐第二种docker容器使用方法（如果翻墙方便的话可以继续用Anaconda）
+
+推荐使用pycharm，众多编辑软件中pycharm算是最好用的一个
+
+管理员分配了docker容器后，现在有了远程服务器的ip地址，有了登录的密码，只需要在pycharm中进行一定的设置就可以从本地pycharm链接
+到远程服务器的docker容器中，这里每一个docker容器都可以理解为一个linux系统，本地的系统如何使用命令安装环境这里docker容器内部就
+如何使用命令安装环境
+
+当pycharm设置好，链接到远程服务器的docker容器后（此时容器内环境已配好），代码保存在远端服务器就可以直接运行，使用的是远程容器的环境
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
